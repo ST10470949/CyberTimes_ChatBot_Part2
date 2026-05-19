@@ -17,3 +17,12 @@ The application provides:
 - cybersecurity education
 
 The chatbot uses conversational AI-inspired behavior to create an interactive and engaging learning experience.
+# Features
+
+## GUI Features
+- Modern WPF fullscreen interface
+- Dark cybersecurity dashboard theme
+- Scrollable topic sidebar
+- Dynamic user display
+- Chat bubbles for user and bot
+- Responsive layout
