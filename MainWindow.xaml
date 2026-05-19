@@ -1,0 +1,412 @@
+﻿<Window x:Class="CyberTimes_ChatBot_Part2.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CyberTimes_ChatBot_Part2"
+        mc:Ignorable="d"
+        Title="Cyber Times — AI Assistant"
+        WindowState="Maximized"
+        Background="#0F172A"
+        FontFamily="Segoe UI">
+
+    <!-- Main application window. This is the main UI for the Cyber Times chatbot. -->
+    <Window.Resources>
+        <!--
+            Window resources: brushes, styles and data templates used across the UI.
+            These resources define the color theme (dark navy), accent (cyan) and
+            the chat message templates for bot and user messages.
+        -->
+
+        <!-- Theme brushes -->
+        <SolidColorBrush x:Key="BackgroundBrush" Color="#0F172A" />
+        <SolidColorBrush x:Key="PanelBrush" Color="#1E293B" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#06B6D4" />
+        <SolidColorBrush x:Key="AccentHoverBrush" Color="#1A06B6D4" />
+        <SolidColorBrush x:Key="BotBrush" Color="#1D4ED8" />
+        <SolidColorBrush x:Key="UserBrush" Color="#334155" />
+        <SolidColorBrush x:Key="TextBrush" Color="White" />
+
+        <!-- Button style for sidebar -->
+        <Style x:Key="SidebarButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Padding" Value="10" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="6">
+                            <ContentPresenter VerticalAlignment="Center" Margin="6,4" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{StaticResource AccentHoverBrush}" />
+                                <Setter TargetName="bd" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#06B6D4" BlurRadius="12" ShadowDepth="0" Opacity="0.18" />
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="Foreground" Value="Black" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{StaticResource AccentBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+
+        <!-- Chat message template for ChatMessage model -->
+        <DataTemplate x:Key="ChatMessageTemplate" DataType="{x:Type local:ChatMessage}">
+            <Border x:Name="Bubble" Background="{StaticResource BotBrush}" CornerRadius="10" Padding="12" Margin="6" MaxWidth="760" HorizontalAlignment="Left">
+                <Border.Effect>
+                    <DropShadowEffect Color="#0B000000" BlurRadius="8" ShadowDepth="1" Opacity="0.25" />
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock x:Name="MsgText" Text="{Binding Text}" TextWrapping="Wrap" Foreground="{StaticResource TextBrush}" FontSize="14" />
+                </StackPanel>
+            </Border>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsUser}" Value="True">
+                    <Setter TargetName="Bubble" Property="Background" Value="{StaticResource UserBrush}" />
+                    <Setter TargetName="Bubble" Property="HorizontalAlignment" Value="Right" />
+                    <Setter TargetName="Bubble" Property="Padding" Value="14" />
+                    <Setter TargetName="MsgText" Property="FontWeight" Value="Bold" />
+                    <Setter TargetName="Bubble" Property="Effect">
+                        <Setter.Value>
+                            <DropShadowEffect Color="#000000" BlurRadius="10" ShadowDepth="2" Opacity="0.35" />
+                        </Setter.Value>
+                    </Setter>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsUser}" Value="False">
+                    <Setter TargetName="Bubble" Property="Background" Value="{StaticResource BotBrush}" />
+                    <Setter TargetName="Bubble" Property="HorizontalAlignment" Value="Left" />
+                    <Setter TargetName="MsgText" Property="FontWeight" Value="Normal" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="160" /> <!-- Header (increased to fit hero/banner) -->
+            <RowDefinition Height="*" />  <!-- Main content -->
+            <RowDefinition Height="84" /> <!-- Input -->
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- HERO / HEADER -->
+        <Border Grid.Row="0" Grid.ColumnSpan="2" Background="{StaticResource PanelBrush}" CornerRadius="10" Padding="14" SnapsToDevicePixels="True">
+            <Border.Effect>
+                <DropShadowEffect Color="#000000" BlurRadius="18" ShadowDepth="0" Opacity="0.45" />
+            </Border.Effect>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="360" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="300" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: geometric badge with shield + lock + subtle circuit -->
+                <Grid Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <!-- Badge background (glassmorphism) -->
+                    <Border Background="#1FFFFFFF" CornerRadius="12" Padding="10" Width="320" Height="56" HorizontalAlignment="Left" Opacity="0.03">
+                        <Border.Effect>
+                            <BlurEffect Radius="6" />
+                        </Border.Effect>
+                    </Border>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                        <!-- Shield Icon -->
+                        <Grid Width="56" Height="56">
+                            <Ellipse Fill="{StaticResource AccentBrush}" Opacity="0.12" />
+                            <Path Data="M28,4 L44,12 L44,28 C44,40 36,52 28,56 C20,52 12,40 12,28 L12,12 Z" Fill="Transparent" Stroke="{StaticResource AccentBrush}" StrokeThickness="1.6" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                                <Path.Effect>
+                                    <DropShadowEffect Color="#06B6D4" BlurRadius="8" ShadowDepth="0" Opacity="0.6" />
+                                </Path.Effect>
+                            </Path>
+                            <!-- Lock overlay -->
+                            <Path Data="M20,30 L36,30 L36,36 L20,36 Z M24,30 L24,26 C24,22 28,20 32,20 C36,20 36,24 36,26" Fill="{StaticResource PanelBrush}" Stroke="{StaticResource TextBrush}" StrokeThickness="1" Opacity="0.9" />
+                        </Grid>
+
+                        <!-- Title small (left badge) -->
+                        <StackPanel Margin="12,2,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="CYBER TIMES" Foreground="{StaticResource TextBrush}" FontWeight="Bold" FontSize="12" Opacity="0.9" />
+                            <TextBlock Text="AI CYBERSECURITY" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" FontSize="10" Opacity="0.95" />
+                        </StackPanel>
+                    </StackPanel>
+                    <!-- subtle circuit lines -->
+                    <Canvas HorizontalAlignment="Left" VerticalAlignment="Center" Width="320" Height="56" IsHitTestVisible="False">
+                        <Line X1="160" Y1="8" X2="300" Y2="8" Stroke="{StaticResource AccentBrush}" StrokeThickness="0.6" Opacity="0.12" />
+                        <Line X1="160" Y1="48" X2="300" Y2="48" Stroke="{StaticResource AccentBrush}" StrokeThickness="0.6" Opacity="0.12" />
+                        <Ellipse Width="4" Height="4" Fill="{StaticResource AccentBrush}" Canvas.Left="300" Canvas.Top="6" Opacity="0.14" />
+                        <Ellipse Width="4" Height="4" Fill="{StaticResource AccentBrush}" Canvas.Left="300" Canvas.Top="46" Opacity="0.14" />
+                    </Canvas>
+                </Grid>
+
+                <!-- Center: large glowing title and subtitles -->
+                <Grid Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock x:Name="HeroTitle" Text="CYBER TIMES WITH ABO" Foreground="White" FontWeight="Bold" FontSize="26" HorizontalAlignment="Center" TextAlignment="Center">
+                        <TextBlock.RenderTransform>
+                            <ScaleTransform ScaleX="1" ScaleY="1" />
+                        </TextBlock.RenderTransform>
+                    </TextBlock>
+                        <TextBlock Text="AI Cybersecurity Assistant" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" FontSize="14" HorizontalAlignment="Center" Margin="0,6,0,0" />
+                        <TextBlock Text="Protecting Your Digital World" Foreground="{StaticResource TextBrush}" Opacity="0.65" FontSize="12" HorizontalAlignment="Center" Margin="0,6,0,0" />
+
+                        <!-- glowing underline -->
+                        <Border Height="2" Width="320" Background="{StaticResource AccentBrush}" CornerRadius="2" Opacity="0.18" Margin="0,12,0,0">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#06B6D4" BlurRadius="14" ShadowDepth="0" Opacity="0.45" />
+                            </Border.Effect>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- subtle matrix grid behind title -->
+                    <Canvas IsHitTestVisible="False" Opacity="0.06">
+                        <!-- vertical lines -->
+                        <Rectangle Width="1" Height="64" Fill="{StaticResource AccentBrush}" Canvas.Left="-160" Opacity="0.08" />
+                        <Rectangle Width="1" Height="64" Fill="{StaticResource AccentBrush}" Canvas.Left="160" Opacity="0.06" />
+                    </Canvas>
+                </Grid>
+
+                <!-- Right: AI orb hologram + status -->
+                <Grid Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,6,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Orb / hologram -->
+                    <Grid Width="120" Height="120" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Ellipse x:Name="OrbGlow" Width="120" Height="120">
+                            <Ellipse.Fill>
+                                <RadialGradientBrush GradientOrigin="0.3,0.3">
+                                    <GradientStop Color="#4416B6D4" Offset="0" />
+                                    <GradientStop Color="#001D4ED8" Offset="0.6" />
+                                    <GradientStop Color="#00000000" Offset="1" />
+                                </RadialGradientBrush>
+                            </Ellipse.Fill>
+                            <Ellipse.Effect>
+                                <BlurEffect Radius="10" />
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse Width="64" Height="64" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Ellipse.Fill>
+                                <RadialGradientBrush GradientOrigin="0.4,0.4">
+                                    <GradientStop Color="#FF06B6D4" Offset="0" />
+                                    <GradientStop Color="#801D4ED8" Offset="0.7" />
+                                </RadialGradientBrush>
+                            </Ellipse.Fill>
+                            <Ellipse.Effect>
+                                <DropShadowEffect Color="#06B6D4" BlurRadius="18" ShadowDepth="0" Opacity="0.8" />
+                            </Ellipse.Effect>
+                        </Ellipse>
+
+                        <!-- orbit particle -->
+                        <Ellipse Width="8" Height="8" Fill="{StaticResource AccentBrush}" Opacity="0.95" Canvas.Left="6" Canvas.Top="54" />
+                    </Grid>
+
+                    <!-- status / small info + End Chat button -->
+                    <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,8,0,0">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin="0,0,12,0">
+                                <TextBlock Text="Status: Online" Foreground="{StaticResource TextBrush}" Opacity="0.85" HorizontalAlignment="Right" />
+                                <TextBlock x:Name="HeaderUserText" Text="User: " Foreground="{StaticResource TextBrush}" Opacity="0.95" HorizontalAlignment="Right" FontWeight="SemiBold" />
+                            </StackPanel>
+                            <Button x:Name="EndChatButton" Content="End Chat" Width="96" Height="34" Margin="0,0,0,0" Background="Transparent" BorderBrush="{StaticResource AccentBrush}" Foreground="{StaticResource AccentBrush}" Cursor="Hand" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Animations: subtle pulsing glow on title and orb -->
+                <Grid.Triggers>
+                    <EventTrigger RoutedEvent="Loaded">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="OrbGlow" Storyboard.TargetProperty="Opacity" From="0.6" To="1" Duration="0:0:2" AutoReverse="True" RepeatBehavior="Forever" />
+                                <DoubleAnimation Storyboard.TargetName="HeroTitle" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" From="1" To="1.02" Duration="0:0:3" AutoReverse="True" RepeatBehavior="Forever" />
+                                <DoubleAnimation Storyboard.TargetName="HeroTitle" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" From="1" To="1.02" Duration="0:0:3" AutoReverse="True" RepeatBehavior="Forever" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Grid.Triggers>
+
+                <!-- ensure title has RenderTransform for animations (RenderTransform set on HeroTitle) -->
+            </Grid>
+        </Border>
+
+        <!-- SIDEBAR -->
+        <Border Grid.Row="1" Grid.Column="0" Background="{StaticResource PanelBrush}" CornerRadius="8" Margin="0,12,12,12" Padding="12">
+            <!-- Use Grid to allow the ScrollViewer to fill available vertical space -->
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="Topics" Foreground="{StaticResource TextBrush}" FontWeight="Bold" Margin="4" />
+
+                <ScrollViewer Grid.Row="1" Margin="0,8,0,0" VerticalScrollBarVisibility="Auto" CanContentScroll="False" PanningMode="VerticalOnly">
+                    <StackPanel>
+                        <!-- Generate buttons for all major topics from TopicManager -->
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="password" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="🔐" FontSize="14" /><TextBlock Text="Password Security" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="phishing" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="📧" FontSize="14" /><TextBlock Text="Phishing" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="malware" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="🛡️" FontSize="14" /><TextBlock Text="Malware" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="social engineering" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="🎭" FontSize="14" /><TextBlock Text="Social Engineering" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="2fa" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="🔒" FontSize="14" /><TextBlock Text="Two-Factor Authentication" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="safe browsing" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="🌐" FontSize="14" /><TextBlock Text="Safe Browsing" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="ransomware" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="💣" FontSize="14" /><TextBlock Text="Ransomware" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="public wifi" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="📶" FontSize="14" /><TextBlock Text="Public Wi-Fi" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="identity theft" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="🕵️" FontSize="14" /><TextBlock Text="Identity Theft" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="updates" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="⬆️" FontSize="14" /><TextBlock Text="Software Updates" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="encryption" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="🔑" FontSize="14" /><TextBlock Text="Encryption" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="firewalls" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="🧱" FontSize="14" /><TextBlock Text="Firewalls" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="backup &amp; recovery" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="💾" FontSize="14" /><TextBlock Text="Backup &amp; Recovery" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="incident response" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="🚨" FontSize="14" /><TextBlock Text="Incident Response" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="privacy settings" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="🔐" FontSize="14" /><TextBlock Text="Privacy Settings" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="iot security" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="📡" FontSize="14" /><TextBlock Text="IoT Security" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="mobile security" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="📱" FontSize="14" /><TextBlock Text="Mobile Security" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="secure coding" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="💻" FontSize="14" /><TextBlock Text="Secure Coding" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="network segmentation" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="🕸️" FontSize="14" /><TextBlock Text="Network Segmentation" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="access control" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="🔒" FontSize="14" /><TextBlock Text="Access Control" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarButton}" Margin="0,6,0,0" Tag="security policies" Click="TopicButton_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="📜" FontSize="14" /><TextBlock Text="Security Policies" Foreground="{StaticResource TextBrush}" Margin="10,0,0,0" /></StackPanel>
+                        </Button>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- CHAT AREA -->
+        <Border Grid.Row="1" Grid.Column="1" Background="Transparent" CornerRadius="8" Margin="0,12,0,12">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Border Background="{StaticResource PanelBrush}" CornerRadius="8" Padding="12">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Messages list -->
+                        <ListBox x:Name="ChatListBox" Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextBrush}" HorizontalContentAlignment="Stretch" ItemTemplate="{StaticResource ChatMessageTemplate}" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                            <!-- Items will be ChatMessage instances added from code-behind -->
+                        </ListBox>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- INPUT AREA -->
+        <Border Grid.Row="2" Grid.ColumnSpan="2" Background="{StaticResource PanelBrush}" CornerRadius="8" Padding="12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="120" />
+                </Grid.ColumnDefinitions>
+
+                <DockPanel Grid.Column="0" LastChildFill="True">
+                    <TextBox x:Name="InputTextBox" Height="56" Margin="0" VerticalContentAlignment="Center" Background="#0B1220" Foreground="{StaticResource TextBrush}" BorderThickness="0" Padding="16,12" FontSize="14" TextWrapping="Wrap" AcceptsReturn="True" />
+                    <TextBlock Text="Ask me about cybersecurity..." Foreground="#88FFFFFF" Margin="20,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Text, ElementName=InputTextBox}" Value="">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Text, ElementName=InputTextBox}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </DockPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button x:Name="RecordButton" Width="56" Height="56" Background="Transparent" BorderBrush="{StaticResource AccentBrush}" Foreground="{StaticResource AccentBrush}" FontSize="18" Cursor="Hand" Margin="0,0,8,0" Click="RecordButton_Click" ToolTip="Hold to record / Click to start recording">
+                        🎤
+                    </Button>
+                    <Button x:Name="SendButton" Width="56" Height="56" Background="{StaticResource AccentBrush}" BorderBrush="{StaticResource AccentBrush}" Foreground="Black" FontSize="18" Cursor="Hand">
+                        ➤
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- STARTUP / LOGIN OVERLAY -->
+        <Grid x:Name="StartupOverlay" Grid.RowSpan="3" Grid.ColumnSpan="2" Background="#0B0F172A">
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border Background="{StaticResource PanelBrush}" CornerRadius="12" Padding="24" Width="560" Opacity="0.98">
+                    <StackPanel>
+                        <TextBlock Text="Welcome to Cyber Times" Foreground="{StaticResource TextBrush}" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" />
+                        <TextBlock Text="Please enter your name to continue" Foreground="{StaticResource TextBrush}" Opacity="0.8" Margin="0,10,0,18" HorizontalAlignment="Center" />
+
+                        <TextBox x:Name="NameTextBox" Height="44" FontSize="14" Padding="10" Background="#0B1220" Foreground="{StaticResource TextBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" />
+
+                        <TextBlock x:Name="NameWarning" Text="Please enter your name." Foreground="#FFEF4444" Visibility="Collapsed" Margin="6,8,0,0" />
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                            <Button x:Name="ContinueButton" Content="Continue" Width="110" Height="40" Background="{StaticResource AccentBrush}" Foreground="Black" Cursor="Hand" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+    </Grid>
+</Window>
