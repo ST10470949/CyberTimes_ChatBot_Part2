@@ -64,3 +64,24 @@ The chatbot uses conversational AI-inspired behavior to create an interactive an
 - .NET
 - Visual Studio
 - Object-Oriented Programming (OOP)
+
+## Project Structure
+
+CyberChatbot
+│
+├── App.xaml
+├── MainWindow.xaml
+├── MainWindow.xaml.cs
+├── ChatBot.cs
+├── UserManagers.cs
+├── FuzzyMatchers.cs
+├── TopicManagers.cs
+├── ChatMessage.cs
+├── AudioPlayers.cs
+├── AudioRecorder.cs
+├── FileMangers.cs
+├── Utilities.cs
+├── ExternalChatbot.cs
+│
+├── Assets
+│   └── Abos.wav
