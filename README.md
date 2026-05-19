@@ -85,3 +85,16 @@ CyberChatbot
 │
 ├── Assets
 │   └── Abos.wav
+
+## Memory Features
+The chatbot can remember:
+
+user names
+moods
+preferences
+favourite cybersecurity interests
+
+Example:
+
+User: I'm interested in privacy.
+Bot: Great! I'll remember that you're interested in privacy.
