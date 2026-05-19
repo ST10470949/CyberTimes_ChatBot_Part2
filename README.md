@@ -26,3 +26,14 @@ The chatbot uses conversational AI-inspired behavior to create an interactive an
 - Dynamic user display
 - Chat bubbles for user and bot
 - Responsive layout
+
+## Cybersecurity Features
+- Password security education
+- Phishing awareness
+- Malware explanations
+- Ransomware protection
+- Public Wi-Fi safety
+- Encryption guidance
+- Secure browsing tips
+- Software updates awareness
+- And many more etc.
