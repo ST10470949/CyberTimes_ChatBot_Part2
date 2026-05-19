@@ -53,3 +53,6 @@ The chatbot uses conversational AI-inspired behavior to create an interactive an
 - User memory storage
 - Visit count tracking
 
+## Audio Features
+- Welcome WAV sound playback
+- Startup audio system
