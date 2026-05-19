@@ -119,3 +119,17 @@ The chatbot handles unknown inputs gracefully.
 Example:
 
 I'm not sure I understand. Can you try rephrasing?
+
+## Screenshots
+Main Chatbot Interface
+<img width="1917" height="979" alt="Screenshot 2026-05-19 095828" src="https://github.com/user-attachments/assets/0c9003d9-1be4-49e1-b2b9-bc9f014582ac" />
+
+
+Welcome Screen
+<img width="739" height="506" alt="Screenshot 2026-05-19 095812" src="https://github.com/user-attachments/assets/b060c0ae-58d4-4540-9547-6d42f3200153" />
+
+
+Sidebar Topics
+<img width="293" height="879" alt="Screenshot 2026-05-19 095842" src="https://github.com/user-attachments/assets/0adbca9b-b9b7-46c5-b967-bdd25f3bbf8d" />
+
+
