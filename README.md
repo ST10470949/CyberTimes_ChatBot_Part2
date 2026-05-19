@@ -56,3 +56,11 @@ The chatbot uses conversational AI-inspired behavior to create an interactive an
 ## Audio Features
 - Welcome WAV sound playback
 - Startup audio system
+
+## Technologies Used
+- C#
+- WPF
+- XAML
+- .NET
+- Visual Studio
+- Object-Oriented Programming (OOP)
