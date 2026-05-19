@@ -98,3 +98,16 @@ Example:
 
 User: I'm interested in privacy.
 Bot: Great! I'll remember that you're interested in privacy.
+
+## Sentiment Detection
+
+The chatbot detects emotions such as:
+
+worried
+curious
+frustrated
+
+Example:
+
+User: I'm worried about online scams.
+Bot: It's completely understandable to feel that way. Let me share some tip
