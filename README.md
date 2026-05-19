@@ -46,3 +46,10 @@ The chatbot uses conversational AI-inspired behavior to create an interactive an
 - Sentiment detection
 - Follow-up conversation handling
 - Returning user recognition
+
+## User Features
+- Dynamic username system
+- Personalized greetings
+- User memory storage
+- Visit count tracking
+
