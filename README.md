@@ -37,3 +37,12 @@ The chatbot uses conversational AI-inspired behavior to create an interactive an
 - Secure browsing tips
 - Software updates awareness
 - And many more etc.
+
+## AI Chatbot Features
+- Keyword recognition
+- Multiple-question detection
+- Fuzzy matching for spelling mistakes
+- Memory and recall system
+- Sentiment detection
+- Follow-up conversation handling
+- Returning user recognition
