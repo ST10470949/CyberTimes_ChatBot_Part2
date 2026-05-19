@@ -111,3 +111,11 @@ Example:
 
 User: I'm worried about online scams.
 Bot: It's completely understandable to feel that way. Let me share some tip
+
+## Error Handling
+
+The chatbot handles unknown inputs gracefully.
+
+Example:
+
+I'm not sure I understand. Can you try rephrasing?
