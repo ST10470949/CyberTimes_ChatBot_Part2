@@ -80,6 +80,9 @@ jobs:
     # Execute all unit tests in the solution
     - name: Execute unit tests
       run: dotnet test
+      CyberSecurity_Part2.2/
+      CyberSecurity_Part2.2.csproj
+      CyberSecurity_Part2.2.sinx
 
     # Restore the application to populate the obj folder with RuntimeIdentifiers
     - name: Restore the application
