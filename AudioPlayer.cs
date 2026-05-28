@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Media;
@@ -13,7 +13,7 @@ namespace CyberTimes_ChatBot_Part2
         // Play the default welcome sound file 'Abos.wav' if it exists.
         public static void PlayWelcomeSound()
         {
-            PlayIfExists("Abos.wav");
+            PlayIfExists("Abos2.wav");
         }
 
         // Play a WAV file in the application folder if it exists (non-blocking).

@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace CyberTimes_ChatBot_Part2
+namespace CyberSecurity_Part2._2
 {
     // UserManager stores simple session and persistent user data.
     // This is a small helper to remember the current user's name

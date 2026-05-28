@@ -2,7 +2,7 @@
 using System.Data;
 using System.Windows;
 
-namespace CyberTimes_ChatBot_Part2
+namespace CyberSecurity_Part2._2
 {
     /// <summary>
     /// Interaction logic for App.xaml

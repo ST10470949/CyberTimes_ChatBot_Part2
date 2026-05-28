@@ -6,11 +6,12 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Globalization;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace CyberTimes_ChatBot_Part2
+namespace CyberSecurity_Part2._2
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -19,23 +20,77 @@ namespace CyberTimes_ChatBot_Part2
     /// </summary>
     public partial class MainWindow : Window
     {
-        // Simple recorder helper (NAudio wrapper). Created when user starts recording.
+        // Simple recorder helper. Created when user starts recording.
         private AudioRecorder? recorder;
         // Path to the temporary WAV file created when recording.
         private string? currentRecordingPath;
+        // Guard to avoid re-entrant text change updates on the name box
+        private bool isUpdatingNameText = false;
+        // Sidebar state for collapsible topics
+        private bool _sidebarOpen = true;
 
         public MainWindow()
         {
             InitializeComponent();
             // Hook the important UI events to their handlers.
-            SendButton.Click += SendButton_Click;
-            InputTextBox.KeyDown += InputTextBox_KeyDown;
+            // NOTE: SendButton.Click and InputTextBox.KeyDown are already wired in XAML
+            // so they are not subscribed here again to avoid double-firing.
             Loaded += MainWindow_Loaded;
 
-            ContinueButton.Click += ContinueButton_Click;
+            // ensure startup overlay blocks interaction until name provided
+            StartupOverlay.IsHitTestVisible = true;
             NameTextBox.KeyDown += NameTextBox_KeyDown;
-            EndChatButton.Click += EndChatButton_Click;
+            NameTextBox.TextChanged += NameTextBox_TextChanged;
+
             // recorder is initialized when the user starts recording to save resources.
+        }
+
+        // Toggle handler for the Topics sidebar button in the header.
+        private void BtnToggleTopics_Click(object sender, RoutedEventArgs e)
+        {
+            _sidebarOpen = !_sidebarOpen;
+            // Use the named column directly for reliability
+            var col = SidebarColumn;
+            if (col == null) return;
+
+            var anim = new GridLengthAnimation
+            {
+                From = col.Width,
+                To = _sidebarOpen ? new GridLength(240, GridUnitType.Pixel) : new GridLength(0, GridUnitType.Pixel),
+                Duration = new Duration(TimeSpan.FromMilliseconds(220)),
+                EasingFunction = new System.Windows.Media.Animation.QuadraticEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseInOut }
+            };
+
+            // Begin the animation on the column's Width property
+            col.BeginAnimation(ColumnDefinition.WidthProperty, anim);
+
+            // Update the icon label using the named control
+            if (ToggleIcon != null) ToggleIcon.Text = _sidebarOpen ? "✕" : "☰";
+        }
+
+        // Toggle the sidebar visibility with a simple width animation
+        private void SidebarToggleButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var sidebar = this.FindName("Sidebar") as Border;
+                if (sidebar == null)
+                {
+                    // fallback: find first border in column 0
+                    sidebar = LogicalTreeHelper.FindLogicalNode(this, "") as Border;
+                }
+                // Simple toggle: collapse or show the sidebar container
+                var gridCol = this.MainContentGrid.ColumnDefinitions[0];
+                if (gridCol.Width.Value > 0)
+                {
+                    gridCol.Width = new GridLength(0);
+                }
+                else
+                {
+                    gridCol.Width = new GridLength(240);
+                }
+            }
+            catch { }
         }
 
         // Called when the window finishes loading.
@@ -52,6 +107,28 @@ namespace CyberTimes_ChatBot_Part2
                 // Update the header display to show the current user.
                 UpdateHeaderUser();
             }
+
+            // Ensure the startup overlay is visible and interactive and the name box is enabled/focused.
+            try
+            {
+                if (StartupOverlay != null)
+                {
+                    StartupOverlay.Visibility = Visibility.Visible;
+                    StartupOverlay.IsHitTestVisible = true;
+                }
+
+                if (NameTextBox != null)
+                {
+                    NameTextBox.IsEnabled = true;
+                    NameTextBox.Focusable = true;
+                    // Focus after layout completes to avoid timing issues
+                    this.Dispatcher.BeginInvoke(new System.Action(() =>
+                    {
+                        try { NameTextBox.Focus(); } catch { }
+                    }));
+                }
+            }
+            catch { }
 
             // Focus the name box so the user can type their name immediately.
             NameTextBox.Focus();
@@ -76,11 +153,40 @@ namespace CyberTimes_ChatBot_Part2
             }
         }
 
+        // Normalize the name to Title Case as the user types.
+        private void NameTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (isUpdatingNameText) return;
+            try
+            {
+                isUpdatingNameText = true;
+                var tb = sender as TextBox;
+                if (tb == null) return;
+                var selStart = tb.SelectionStart;
+                var original = tb.Text ?? string.Empty;
+                // Use TextInfo ToTitleCase but preserve existing casing for acronyms by lowering first
+                var ti = CultureInfo.CurrentCulture.TextInfo;
+                var lower = original.ToLower();
+                var titled = ti.ToTitleCase(lower);
+                if (titled != original)
+                {
+                    tb.Text = titled;
+                    // restore caret roughly at same logical place
+                    tb.SelectionStart = Math.Min(selStart + (titled.Length - original.Length), tb.Text.Length);
+                }
+            }
+            finally
+            {
+                isUpdatingNameText = false;
+            }
+        }
+
         // Continue button handler on the startup overlay.
         // Validates the name and then shows the main chat UI.
-        private void ContinueButton_Click(object sender, RoutedEventArgs e)
+        private async void ContinueButton_Click(object sender, RoutedEventArgs e)
         {
             var name = NameTextBox.Text?.Trim();
+            // Require at least a non-empty name (allow single-word names to avoid blocking users)
             if (string.IsNullOrWhiteSpace(name))
             {
                 // Show a friendly warning if the name is empty.
@@ -97,26 +203,72 @@ namespace CyberTimes_ChatBot_Part2
             // Increment an internal usage counter for analytics (saved to disk).
             var visits = UserManager.IncrementUserCount(name);
 
-            // Hide the overlay and play the welcome audio.
+            // Enable the main UI and hide the startup overlay immediately
+            MainContentGrid.IsEnabled = true;
             StartupOverlay.Visibility = Visibility.Collapsed;
-            AudioPlayer.PlayWelcomeSound();
+            StartupOverlay.IsHitTestVisible = false;
 
-            // Show a friendly personalized message in the chat bubble.
+            // Make the EndChatButton visible now that the user has logged in.
+            EndChatButton.Visibility = Visibility.Visible;
+
+            // Play the 'Abos2.wav' sound synchronously in a background task so we can await it
+            try
+            {
+                var path = System.IO.Path.Combine(System.AppContext.BaseDirectory, "Abos2.wav");
+                if (System.IO.File.Exists(path))
+                {
+                    await System.Threading.Tasks.Task.Run(() =>
+                    {
+                        try
+                        {
+                            var sp = new System.Media.SoundPlayer(path);
+                            sp.PlaySync();
+                        }
+                        catch { }
+                    });
+                }
+            }
+            catch { }
+
+            // Show the user's own greeting message first (right side bubble)
+            // so it looks like the user just "arrived" and introduced themselves.
+            var userGreeting = new ChatMessage
+            {
+                Sender = UserManager.CurrentUserName,
+                Text = $"Hi, I am {UserManager.CurrentUserName}.",
+                IsUser = true
+            };
+            ChatListBox.Items.Add(userGreeting);
+            ChatListBox.ScrollIntoView(userGreeting);
+
+            // Small pause so the greeting feels like a real conversation exchange.
+            await System.Threading.Tasks.Task.Delay(400);
+
+            // After audio finishes, post the friendly personalized message in the chat bubble.
             ChatMessage botWelcome;
             if (visits > 2)
             {
                 // Returning user (more than two visits)
-                botWelcome = new ChatMessage { Sender = "Bot", Text = $"Welcome back {UserManager.CurrentUserName}! I remember you from your previous visits.", IsUser = false };
+                botWelcome = new ChatMessage
+                {
+                    Sender = "Bot",
+                    Text = $"Welcome back {UserManager.CurrentUserName}! 👋 I remember you from your previous visits. Great to have you here again. Feel free to ask me anything about cybersecurity — passwords, phishing, malware, privacy and more.",
+                    IsUser = false
+                };
             }
             else
             {
                 // First or second visit
-                botWelcome = new ChatMessage { Sender = "Bot", Text = $"Welcome {UserManager.CurrentUserName}, I am your AI Cybersecurity Assistant. It is a pleasure to have you here. You may ask about passwords, scams, malware, privacy, or safe browsing.", IsUser = false };
+                botWelcome = new ChatMessage
+                {
+                    Sender = "Bot",
+                    Text = $"Welcome {UserManager.CurrentUserName}! 👋 I am your AI Cybersecurity Assistant. It is a pleasure to have you here. You may ask me about passwords, phishing, malware, privacy, safe browsing and much more. Select a topic on the left or type your question below to get started.",
+                    IsUser = false
+                };
             }
+
             ChatListBox.Items.Add(botWelcome);
             ChatListBox.ScrollIntoView(botWelcome);
-
-            // Focus the chat input so the user can type their first question.
             InputTextBox.Focus();
         }
 
@@ -142,43 +294,94 @@ namespace CyberTimes_ChatBot_Part2
             var text = InputTextBox.Text?.Trim();
             if (string.IsNullOrWhiteSpace(text)) return;
 
-            // Create a ChatMessage object to represent the user's message.
-            var userMsg = new ChatMessage { Sender = UserManager.CurrentUserName, Text = text, IsUser = true };
-            ChatListBox.Items.Add(userMsg);
-            ChatListBox.ScrollIntoView(userMsg);
+            try
+            {
+                // Create a ChatMessage object to represent the user's message.
+                var userMsg = new ChatMessage { Sender = UserManager.CurrentUserName, Text = text, IsUser = true };
+                // Update UI on the dispatcher to be safe from any calling context
+                this.Dispatcher.Invoke(() =>
+                {
+                    ChatListBox.Items.Add(userMsg);
+                    ChatListBox.ScrollIntoView(userMsg);
+                });
 
-            // Get a reply from the ChatBot engine and add it as a bot ChatMessage.
-            var response = ChatBot.GetResponse(text);
-            var botMsg = new ChatMessage { Sender = "Bot", Text = response, IsUser = false };
-            ChatListBox.Items.Add(botMsg);
-            ChatListBox.ScrollIntoView(botMsg);
+                // Call chatbot engine (guarded)
+                string response;
+                try
+                {
+                    response = ChatBot.GetResponse(text) ?? "I'm not sure I understand. Can you try rephrasing?";
+                }
+                catch (Exception ex)
+                {
+                    // Log if desired (Debug.WriteLine) and produce friendly error
+                    System.Diagnostics.Debug.WriteLine($"ChatBot.GetResponse error: {ex.Message}");
+                    response = "I'm having trouble processing that right now. Please try again.";
+                }
 
-            // Clear the input and keep focus for further typing.
-            InputTextBox.Clear();
-            InputTextBox.Focus();
+                var botMsg = new ChatMessage { Sender = "Bot", Text = response, IsUser = false };
+                this.Dispatcher.Invoke(() =>
+                {
+                    ChatListBox.Items.Add(botMsg);
+                    ChatListBox.ScrollIntoView(botMsg);
+                });
+
+                // Clear the input and keep focus for further typing.
+                this.Dispatcher.Invoke(() =>
+                {
+                    InputTextBox.Clear();
+                    InputTextBox.Focus();
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SendCurrentMessage error: {ex.Message}");
+                var err = new ChatMessage { Sender = "Bot", Text = "An unexpected error occurred. Please try again.", IsUser = false };
+                this.Dispatcher.Invoke(() =>
+                {
+                    ChatListBox.Items.Add(err);
+                    ChatListBox.ScrollIntoView(err);
+                });
+            }
         }
 
         // When a topic button in the left sidebar is clicked, send that topic as a user action
         // and ask the ChatBot engine to explain it.
         private void TopicButton_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button btn && btn.Tag is string tag)
+            try
             {
-                // topicKey is the identifier used in TopicManager.Topics
-                var topicKey = tag.Trim();
-                // Display the clicked topic in the chat as if the user sent it.
-                var display = btn.Content is StackPanel sp && sp.Children.Count > 1 && sp.Children[1] is TextBlock tb ? tb.Text : topicKey;
-                var userMsg = new ChatMessage { Sender = UserManager.CurrentUserName, Text = display, IsUser = true };
-                ChatListBox.Items.Add(userMsg);
-                ChatListBox.ScrollIntoView(userMsg);
+                if (sender is Button btn && btn.Tag is string tag)
+                {
+                    // topicKey is the identifier used in TopicManager.Topics
+                    var topicKey = tag.Trim();
+                    // Display the clicked topic in the chat as if the user sent it.
+                    var display = btn.Content is StackPanel sp && sp.Children.Count > 1 && sp.Children[1] is TextBlock tb ? tb.Text : topicKey;
+                    var userMsg = new ChatMessage { Sender = UserManager.CurrentUserName, Text = display, IsUser = true };
+                    ChatListBox.Items.Add(userMsg);
+                    ChatListBox.ScrollIntoView(userMsg);
 
-                // Query chatbot engine for the topic's explanation and display it.
-                var response = ChatBot.GetResponse(topicKey);
-                var botMsg = new ChatMessage { Sender = "Bot", Text = response, IsUser = false };
-                ChatListBox.Items.Add(botMsg);
-                ChatListBox.ScrollIntoView(botMsg);
+                    // Query chatbot engine for the topic's explanation and display it.
+                    string response;
+                    try
+                    {
+                        response = ChatBot.GetResponse(topicKey) ?? "I'm not sure I understand. Can you try rephrasing?";
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"ChatBot.GetResponse error: {ex.Message}");
+                        response = "I'm having trouble processing that right now. Please try again.";
+                    }
 
-                InputTextBox.Focus();
+                    var botMsg = new ChatMessage { Sender = "Bot", Text = response, IsUser = false };
+                    ChatListBox.Items.Add(botMsg);
+                    ChatListBox.ScrollIntoView(botMsg);
+
+                    InputTextBox.Focus();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"TopicButton_Click error: {ex.Message}");
             }
         }
 
@@ -264,6 +467,11 @@ namespace CyberTimes_ChatBot_Part2
                     // clean up temp file later if desired
                 }
             }
+        }
+
+        private void NameTextBox_TextChanged_1(object sender, TextChangedEventArgs e)
+        {
+
         }
     }
 }

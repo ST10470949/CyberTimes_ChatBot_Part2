@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CyberTimes_ChatBot_Part2
+namespace CyberSecurity_Part2._2
 {
     // FuzzyMatcher contains simple functions to help match topic words
     // even when the user makes small typos or uses slightly different words.
