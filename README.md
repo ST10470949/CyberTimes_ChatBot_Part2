@@ -122,18 +122,17 @@ I'm not sure I understand. Can you try rephrasing?
 
 ## Screenshots
 # Main Chatbot Interface
+<img width="1919" height="1014" alt="Screenshot 2026-05-28 112021" src="https://github.com/user-attachments/assets/05953564-325c-4a22-957e-1143337532da" />
 
-<img width="1917" height="979" alt="Screenshot 2026-05-19 095828" src="https://github.com/user-attachments/assets/0c9003d9-1be4-49e1-b2b9-bc9f014582ac" />
 
 
 # Welcome Screen
 
-<img width="739" height="506" alt="Screenshot 2026-05-19 095812" src="https://github.com/user-attachments/assets/b060c0ae-58d4-4540-9547-6d42f3200153" />
+<img width="693" height="421" alt="Screenshot 2026-05-28 114619" src="https://github.com/user-attachments/assets/94715ae5-a8bb-48fb-8ad1-920c0d1adf10" />
+
 
 
 # Sidebar Topics
 
-
-<img width="293" height="879" alt="Screenshot 2026-05-19 095842" src="https://github.com/user-attachments/assets/0adbca9b-b9b7-46c5-b967-bdd25f3bbf8d" />
-
+<img width="299" height="1012" alt="Screenshot 2026-05-28 114716" src="https://github.com/user-attachments/assets/98a5e769-18ce-4bd7-afb3-a52d9684fbba" />
 
